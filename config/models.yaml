@@ -1,0 +1,53 @@
+# Sovereign AI Model Registry Configuration
+# SIH26117 / MRPL On-Premise Workbench
+
+models:
+  text_reasoning_fast:
+    name: "llama3.2:1b"
+    provider: "ollama"
+    task: "TEXT_REASONING"
+    minimum_vram_mb: 2048
+    recommended_vram_mb: 4096
+    quantization: "Q4_K_M"
+    context_length: 4096
+    fallback_model: "phi3:mini"
+
+  text_reasoning_standard:
+    name: "qwen2.5:3b"
+    provider: "ollama"
+    task: "TEXT_REASONING"
+    minimum_vram_mb: 3500
+    recommended_vram_mb: 6144
+    quantization: "Q4_K_M"
+    context_length: 8192
+    fallback_model: "llama3.2:1b"
+
+  coding_expert:
+    name: "qwen2.5-coder:3b"
+    provider: "ollama"
+    task: "CODING"
+    minimum_vram_mb: 3500
+    recommended_vram_mb: 6144
+    quantization: "Q4_K_M"
+    context_length: 8192
+    fallback_model: "llama3.2:1b"
+
+  vision_multimodal:
+    name: "llava:7b"
+    provider: "ollama"
+    task: "VISION"
+    minimum_vram_mb: 6144
+    recommended_vram_mb: 12288
+    quantization: "Q4_K_S"
+    context_length: 4096
+    fallback_model: "ocr_image_extractor"
+
+  local_fallback_engine:
+    name: "sovereign_rule_engine"
+    provider: "local_fallback"
+    task: "ALL"
+    minimum_vram_mb: 0
+    recommended_vram_mb: 0
+    quantization: "N/A"
+    context_length: 16384
+    fallback_model: null

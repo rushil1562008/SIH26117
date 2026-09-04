@@ -1,0 +1,35 @@
+# Hardware Profile Presets
+# Note: System uses dynamic runtime hardware detection to select the actual mode.
+
+profiles:
+  Tesla_T4:
+    name: "NVIDIA Tesla T4"
+    target_vram_gb: 16
+    recommended_mode: "Standard Local Inference (Full/FP16)"
+    text_model: "qwen2.5:7b"
+    coding_model: "qwen2.5-coder:7b"
+    vision_model: "llava:7b"
+
+  RTX_3050:
+    name: "NVIDIA RTX 3050 (4GB)"
+    target_vram_gb: 4
+    recommended_mode: "Small / Quantized Inference (Q4)"
+    text_model: "llama3.2:1b"
+    coding_model: "qwen2.5-coder:3b"
+    vision_model: "ocr_image_extractor"
+
+  Quadro_P2000:
+    name: "NVIDIA Quadro P2000 (5GB)"
+    target_vram_gb: 5
+    recommended_mode: "Small / Quantized Inference (Q4)"
+    text_model: "phi3:mini"
+    coding_model: "qwen2.5-coder:3b"
+    vision_model: "ocr_image_extractor"
+
+  CPU_Only:
+    name: "CPU Only / Fallback"
+    target_vram_gb: 0
+    recommended_mode: "CPU Fallback + Sovereign Local Engine"
+    text_model: "sovereign_rule_engine"
+    coding_model: "sovereign_rule_engine"
+    vision_model: "ocr_image_extractor"
