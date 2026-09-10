@@ -18,7 +18,7 @@ def main():
     
     # 1. Enforce air-gap security policy
     security_policy.enforce_policy()
-    print("✓ Air-gap security policy enforced (0 external calls allowed).")
+    print("[OK] Air-gap security policy enforced (0 external calls allowed).")
 
     # 2. Print hardware detection summary
     print(detector.get_formatted_table())

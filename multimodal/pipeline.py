@@ -28,7 +28,7 @@ class MultimodalPipeline:
         if image_path and Path(image_path).exists():
             image_data = image_tool.analyze(Path(image_path))
             ocr_data = ocr_tool.extract_text(Path(image_path))
-            evidence_summary.append(f"=== PUMP PHOTOGRAPH ANALYSIS ({image_data['filename']}) ===\n{image_data['visual_findings']}\n\nOCR Readings:\n{ocr_data['extracted_text']}")
+            evidence_summary.append(f"=== EQUIPMENT PHOTOGRAPH & VISUAL TELEMETRY ({image_data['filename']}) ===\n{image_data['visual_findings']}\n\nOCR Readings:\n{ocr_data['extracted_text']}")
 
         if excel_path and Path(excel_path).exists():
             excel_data = excel_tool.analyze(Path(excel_path))

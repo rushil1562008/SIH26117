@@ -22,13 +22,13 @@ class TestWorkbenchComponents(unittest.TestCase):
         self.assertIn("cpu", summary)
         self.assertIn("ram_gb", summary)
         self.assertIn("detected_profile", summary)
-        print("✓ Hardware Detector Test Passed:", summary["detected_profile"])
+        print("[PASS] Hardware Detector Test Passed:", summary["detected_profile"])
 
     def test_model_router(self):
         provider, meta = router.route("TEXT_REASONING")
         self.assertIn("selected_model", meta)
         self.assertIn("provider_type", meta)
-        print("✓ Model Router Test Passed:", meta["selected_model"])
+        print("[PASS] Model Router Test Passed:", meta["selected_model"])
 
     def test_local_vector_store(self):
         store = LocalVectorStore(embedder=embedding_engine)
@@ -39,20 +39,20 @@ class TestWorkbenchComponents(unittest.TestCase):
         results = store.search("bearing temperature limit", top_k=1)
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0][0]["chunk_id"], "c1")
-        print("✓ Local Vector Store Test Passed")
+        print("[PASS] Local Vector Store Test Passed")
 
     def test_calculator(self):
         res = calculator.calculate_pump_efficiency(150.0, 45.0, 25.0)
         self.assertGreater(res["efficiency_pct"], 0)
         self.assertIn("P_hyd", res["calculation_steps"])
-        print("✓ Engineering Calculator Test Passed:", res["efficiency_pct"], "%")
+        print("[PASS] Engineering Calculator Test Passed:", res["efficiency_pct"], "%")
 
     def test_sandbox_executor(self):
         code = "print(10 + 20)"
         res = code_executor.execute_python(code)
         self.assertTrue(res["success"])
         self.assertEqual(res["stdout"], "30")
-        print("✓ Sandbox Executor Test Passed")
+        print("[PASS] Sandbox Executor Test Passed")
 
     def test_report_generator(self):
         mock_state = {
@@ -69,7 +69,7 @@ class TestWorkbenchComponents(unittest.TestCase):
         res = docx_generator.generate_report(mock_state)
         self.assertTrue(res["success"])
         self.assertTrue(Path(res["report_path"]).exists())
-        print("✓ DOCX Report Generator Test Passed:", res["filename"])
+        print("[PASS] DOCX Report Generator Test Passed:", res["filename"])
 
 if __name__ == "__main__":
     unittest.main()

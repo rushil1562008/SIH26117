@@ -19,6 +19,51 @@ from reports.pptx_generator import pptx_generator
 # Global active state store for approval workflow
 CURRENT_AGENT_STATE: Dict[str, Any] = {}
 
+ASSET_PRESETS = {
+    "MRPL-PUMP-101-B: CDU Crude Feed Centrifugal Pump (Sample 01)": {
+        "task": "Analyze crude feed pump inspection and determine required maintenance actions.",
+        "pdf": "sample_pump_inspection.pdf",
+        "img": "sample_pump_image.jpg",
+        "xls": "sample_maintenance_history.xlsx",
+    },
+    "MRPL-COMP-201-A: VDU Wet Gas Centrifugal Compressor (Asset 02)": {
+        "task": "Analyze wet gas compressor stage-1 high radial vibration, thrust bearing temperature, and lube oil anomalies.",
+        "pdf": "pump_inspection_02.pdf",
+        "img": "pump_image_02.jpg",
+        "xls": "maintenance_history_02.xlsx",
+    },
+    "MRPL-HEX-105-AB: CDU Shell & Tube Heat Exchanger (Asset 03)": {
+        "task": "Evaluate crude pre-heat exchanger fouling, severe shell-side delta-P excursion, and U-value degradation.",
+        "pdf": "pump_inspection_03.pdf",
+        "img": "pump_image_03.jpg",
+        "xls": "maintenance_history_03.xlsx",
+    },
+    "MRPL-COL-301: CDU Atmospheric Distillation Column (Asset 04)": {
+        "task": "Assess distillation column flooding, high differential pressure across trays 20-24, and top temperature rise.",
+        "pdf": "pump_inspection_04.pdf",
+        "img": "pump_image_04.jpg",
+        "xls": "maintenance_history_04.xlsx",
+    },
+    "MRPL-VALVE-402-MOV: VDU Severe Service Letdown Valve (Asset 05)": {
+        "task": "Diagnose vacuum bottoms letdown MOV actuator torque deficit, acoustic cavitation, and seat passing.",
+        "pdf": "pump_inspection_05.pdf",
+        "img": "pump_image_05.jpg",
+        "xls": "maintenance_history_05.xlsx",
+    },
+    "MRPL-BOIL-501-HP: CDU Fired Heater Radiant Superheater (Asset 06)": {
+        "task": "Evaluate radiant tube skin thermocouple hot spot (722 deg C), flame impingement, and API 530 creep rupture risks.",
+        "pdf": "pump_inspection_06.pdf",
+        "img": "pump_image_06.jpg",
+        "xls": "sample_maintenance_history.xlsx",
+    },
+    "Custom Upload: Use custom uploaded files below": {
+        "task": "Analyze uploaded industrial equipment files.",
+        "pdf": None,
+        "img": None,
+        "xls": None,
+    }
+}
+
 def refresh_hardware_display() -> str:
     return detector.get_formatted_table()
 
@@ -30,20 +75,26 @@ def run_agent_workflow(
     pdf_file,
     img_file,
     xls_file,
+    preset_name: str = "MRPL-PUMP-101-B: CDU Crude Feed Centrifugal Pump (Sample 01)",
 ) -> Tuple[str, str, str, str, str, str, str, str, str]:
-    """Runs the evidence-to-action industrial agent workflow."""
+    """Runs the evidence-to-action industrial agent workflow with multi-asset preset support."""
     global CURRENT_AGENT_STATE
 
-    pdf_path = pdf_file.name if pdf_file else str(config.documents_dir / "sample_pump_inspection.pdf")
-    img_path = img_file.name if img_file else str(config.images_dir / "sample_pump_image.jpg")
-    xls_path = xls_file.name if xls_file else str(config.tables_dir / "sample_maintenance_history.xlsx")
+    preset_cfg = ASSET_PRESETS.get(preset_name, ASSET_PRESETS["MRPL-PUMP-101-B: CDU Crude Feed Centrifugal Pump (Sample 01)"])
+    default_pdf = preset_cfg.get("pdf") or "sample_pump_inspection.pdf"
+    default_img = preset_cfg.get("img") or "sample_pump_image.jpg"
+    default_xls = preset_cfg.get("xls") or "sample_maintenance_history.xlsx"
 
-    # Verify synthetic demo files exist fallback
-    if not Path(pdf_path).exists():
-        pdf_path = str(config.documents_dir / "sample_pump_inspection.txt")
+    pdf_path = pdf_file.name if pdf_file else str(config.documents_dir / default_pdf)
+    img_path = img_file.name if img_file else str(config.images_dir / default_img)
+    xls_path = xls_file.name if xls_file else str(config.tables_dir / default_xls)
+
+    # Fallback to TXT if PDF not found
+    if not Path(pdf_path).exists() and Path(pdf_path).with_suffix(".txt").exists():
+        pdf_path = str(Path(pdf_path).with_suffix(".txt"))
 
     initial_state: AgentState = {
-        "task_description": task_desc or "Analyze pump inspection and determine whether maintenance is required.",
+        "task_description": task_desc or preset_cfg.get("task", "Analyze industrial inspection"),
         "task_type": "MULTIMODAL_AGENT",
         "pdf_path": pdf_path if Path(pdf_path).exists() else None,
         "image_path": img_path if Path(img_path).exists() else None,
@@ -177,7 +228,6 @@ def run_coding_demo(
 
     return code_display, sandbox_output, calc_steps
 
-
 def create_ui() -> gr.Blocks:
     """Constructs the Gradio Industrial Workbench interface."""
 
@@ -199,15 +249,20 @@ def create_ui() -> gr.Blocks:
         with gr.Tab("Golden Demo: Evidence-to-Action Agent"):
             with gr.Row():
                 with gr.Column(scale=1):
-                    gr.Markdown("### 1. Task Request & Input Files")
+                    gr.Markdown("### 1. Asset Preset & Input Files")
+                    preset_selector = gr.Dropdown(
+                        label="Select Refinery Asset Preset",
+                        choices=list(ASSET_PRESETS.keys()),
+                        value="MRPL-PUMP-101-B: CDU Crude Feed Centrifugal Pump (Sample 01)",
+                    )
                     task_input = gr.Textbox(
                         label="Task Description",
-                        value="Analyze pump inspection and determine whether maintenance is required.",
+                        value=ASSET_PRESETS["MRPL-PUMP-101-B: CDU Crude Feed Centrifugal Pump (Sample 01)"]["task"],
                         lines=2,
                     )
-                    pdf_input = gr.File(label="Upload Pump Inspection PDF", file_types=[".pdf", ".txt"])
-                    img_input = gr.File(label="Upload Pump Photograph", file_types=[".jpg", ".png"])
-                    xls_input = gr.File(label="Upload Maintenance History Excel", file_types=[".xlsx", ".csv"])
+                    pdf_input = gr.File(label="Upload Inspection PDF (Optional if preset chosen)", file_types=[".pdf", ".txt"])
+                    img_input = gr.File(label="Upload Equipment Photo/Scan (Optional if preset chosen)", file_types=[".jpg", ".png"])
+                    xls_input = gr.File(label="Upload Maintenance History (Optional if preset chosen)", file_types=[".xlsx", ".csv"])
 
                     run_btn = gr.Button("🚀 Execute Industrial Agent Workflow", variant="primary")
 
@@ -268,10 +323,21 @@ def create_ui() -> gr.Blocks:
             sec_box = gr.Textbox(label="Security Network Log", value=refresh_security_display, lines=8)
             refresh_sec_btn = gr.Button("🔄 Refresh Security Audit")
 
+        # Preset change event
+        def on_preset_selected(choice):
+            cfg = ASSET_PRESETS.get(choice, {})
+            return cfg.get("task", "")
+
+        preset_selector.change(
+            fn=on_preset_selected,
+            inputs=[preset_selector],
+            outputs=[task_input],
+        )
+
         # Event Handlers
         run_btn.click(
             fn=run_agent_workflow,
-            inputs=[task_input, pdf_input, img_input, xls_input],
+            inputs=[task_input, pdf_input, img_input, xls_input, preset_selector],
             outputs=[
                 router_box,
                 logs_box,

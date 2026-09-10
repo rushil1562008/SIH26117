@@ -10,17 +10,25 @@ class LocalRAGRetriever:
     def __init__(self, doc_ingestor: DocumentIngestor = ingestor, store: LocalVectorStore = vector_store):
         self.ingestor = doc_ingestor
         self.store = store
-        self.auto_index_knowledge_base()
+        self.reindex()
 
-    def auto_index_knowledge_base(self):
-        """Indexes all files currently present in data/knowledge_base/."""
+    def reindex(self):
+        """Clears and re-indexes all SOP and manual files in data/knowledge_base/."""
+        self.store.clear()
         kb_path = config.knowledge_base_dir
         if not kb_path.exists():
             return
 
-        for file_path in kb_path.glob("*.*"):
+        indexed_count = 0
+        for file_path in sorted(kb_path.glob("*.*")):
             if file_path.suffix.lower() in [".pdf", ".txt", ".md", ".docx"]:
                 self.index_file(file_path)
+                indexed_count += 1
+        return indexed_count
+
+    def auto_index_knowledge_base(self):
+        """Backward-compatible alias for reindex()."""
+        return self.reindex()
 
     def index_file(self, file_path: Path):
         """Chunks and indexes a specific file into the local vector store."""

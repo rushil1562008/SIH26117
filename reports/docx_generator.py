@@ -6,12 +6,14 @@ from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from app.config import config
+from tools.file_tools import get_equipment_meta
 
 class DOCXReportGenerator:
     """Generates professional executive industrial maintenance reports in DOCX format."""
 
     def generate_report(self, state: Dict[str, Any]) -> Dict[str, Any]:
         doc = Document()
+        eq_meta = get_equipment_meta(state)
 
         # Set Margins
         sections = doc.sections
@@ -29,8 +31,8 @@ class DOCXReportGenerator:
         run_org.font.bold = True
         run_org.font.color.rgb = RGBColor(0, 51, 102)
 
-        run_title = title_p.add_run("SOVEREIGN INDUSTRIAL MAINTENANCE & EQUIPMENT EVALUATION REPORT")
-        run_title.font.size = Pt(16)
+        run_title = title_p.add_run(f"SOVEREIGN INDUSTRIAL MAINTENANCE REPORT: {eq_meta['tag']}")
+        run_title.font.size = Pt(15)
         run_title.font.bold = True
         run_title.font.color.rgb = RGBColor(180, 0, 0)
 
@@ -46,9 +48,10 @@ class DOCXReportGenerator:
         doc.add_heading("1. Executive Summary", level=1)
         p_exec = doc.add_paragraph()
         p_exec.add_run(
-            f"This industrial maintenance report details the AI-assisted evaluation of critical equipment based on "
-            f"multi-source evidence ingestion including inspection PDFs, photographs, maintenance history spreadsheets, "
-            f"and local MRPL Standard Operating Procedures (SOPs)."
+            f"This industrial maintenance report details the sovereign AI-assisted evaluation of critical equipment "
+            f"'{eq_meta['desc']}' (Tag: {eq_meta['tag']}) located in '{eq_meta['unit']}'. Multi-source evidence "
+            f"ingestion includes inspection PDFs, photographs, maintenance history spreadsheets, and local MRPL "
+            f"Standard Operating Procedures (SOPs)."
         )
 
         # Section 2: Equipment & Metadata Table
@@ -58,7 +61,7 @@ class DOCXReportGenerator:
         
         route_info = state.get("model_routing_info", {})
         meta_data = [
-            ("Equipment Tag", "MRPL-PUMP-101-B (Crude Distillation Unit)"),
+            ("Equipment Tag", f"{eq_meta['tag']} ({eq_meta['unit']})"),
             ("Evaluation Timestamp", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
             ("Selected AI Model", f"{route_info.get('selected_model', 'N/A')} ({route_info.get('provider_type', 'N/A')})"),
             ("Hardware Mode", f"{route_info.get('detected_profile', 'N/A')} (VRAM: {route_info.get('available_vram_mb', 0)} MB)"),
@@ -103,7 +106,7 @@ class DOCXReportGenerator:
         doc.add_paragraph(f"Audit Status    : VERIFIED & SEALED LOCAL DELIVERABLE")
 
         # Save DOCX file
-        output_filename = f"MRPL_Pump_Inspection_Report_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
+        output_filename = f"MRPL_{eq_meta['short']}_Inspection_Report_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
         out_path = config.output_dir / output_filename
         doc.save(out_path)
 

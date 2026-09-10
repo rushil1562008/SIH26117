@@ -1,3 +1,4 @@
+import hashlib
 import math
 import re
 from typing import List
@@ -21,8 +22,9 @@ class LocalEmbeddingEngine:
             return vec
 
         for token in tokens:
-            # Deterministic hash to dimension index
-            idx = hash(token) % self.vector_dim
+            # Deterministic SHA-256 hash to dimension index (cross-process invariant)
+            token_hash = int(hashlib.sha256(token.encode("utf-8")).hexdigest()[:8], 16)
+            idx = token_hash % self.vector_dim
             vec[idx] += 1.0
 
         # L2 normalize
